@@ -1,0 +1,10 @@
+dash==2.13.0
+pandas==2.0.3
+dash-bootstrap-components==1.5.0
+basemap
+geopandas
+fiona==1.8.20
+dask[complete]
+basemap
+statsmodels
+imblearn
