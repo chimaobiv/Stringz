@@ -3,10 +3,12 @@ from dash import dcc, html, Input, Output, State
 import dash_bootstrap_components as dbc
 import geopandas as gpd
 import dask.dataframe as dd
+from shapely import wkb
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 from datetime import datetime
+import time
 import json
 # Load secrets
 with open('config/secrets.json') as f:
@@ -14,15 +16,31 @@ with open('config/secrets.json') as f:
     api_key = secrets['tomtom_api_key']
     mapbox_access_token = secrets['mapbox_access_token']
 
-# Load the GeoJSON file in chunks
-def load_geojson_chunk(file_path, npartitions=50):
-    gdf = gpd.read_file(file_path)
+# Load the parquet file in chunks
+def load_geojson_chunk(parquet_file_path, npartitions=2):
+    start_time = time.time()
+
+    # Read Parquet file using Dask
+    ddf = dd.read_parquet(parquet_file_path)
+
+    # Convert to GeoPandas DataFrame
+    df = ddf.compute()
+
+    # Convert the geometry column from WKB to shapely geometries
+    df['geometry'] = df['geometry'].apply(wkb.loads)
+
+    # Ensure geometry column is recognized as geometry
+    gdf = gpd.GeoDataFrame(df, geometry='geometry')
+
+    end_time = time.time()
+    print(f"Time taken to load Parquet file: {end_time - start_time} seconds")
+
     return dd.from_pandas(gdf, npartitions=npartitions)
 
-# Load the GeoJSON data
-geojson_file_path = '/Users/cobi/PycharmProjects/project_ai/data/fire_archive_M-C61_490372.geojson'
-ddf = load_geojson_chunk(geojson_file_path)
-df = ddf.compute()
+# Load the parquet data
+parquet_file_path = '/Users/cobi/PycharmProjects/project_ai/data/fire_archive_M-C61_490372.parquet'
+gdf_chunked = load_geojson_chunk(parquet_file_path)
+df = gdf_chunked.compute()
 
 # Convert the ACQ_DATE to datetime format
 try:

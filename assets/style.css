@@ -41,3 +41,21 @@ header {
     align-items: center;
     flex-wrap: wrap;
 }
+
+
+.thumbnail-img {
+    width: 100%;
+    height: auto;
+}
+
+.thumbnail-text {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    text-align: center;
+    background: rgba(0, 0, 0, 0.5);
+    color: white;
+    padding: 5px;
+    box-sizing: border-box;
+}
