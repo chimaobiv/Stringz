@@ -10,11 +10,10 @@ dependencies:
       - dash==2.13.0
       - pandas==2.0.3
       - dash-bootstrap-components==1.5.0
-      - basemap
+      - pip install basemap==1.4.1
       - dask[complete]
       - datashader==0.16.3
-      - basemap
-      - statsmodels
-      - imblearn
-      - Flask-Caching
+      - pip install statsmodels==0.14.2
+      - pip install imblearn==0.0
+      - pip install Flask-Caching==2.3.0
 

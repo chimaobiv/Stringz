@@ -2,13 +2,15 @@ import dash
 from dash import dcc, html
 from dash.dependencies import Input, Output
 import dash_bootstrap_components as dbc
-from pages.sub_page3aa import layout as sub_page3a_layout, register_callbacks as register_sub_page3a_callbacks
+from pages.sub_page3a import layout as sub_page3a_layout, register_callbacks as register_sub_page3a_callbacks
 from pages.sub_page3b import layout as sub_page3b_layout, register_callbacks as register_sub_page3b_callbacks
 from pages.page3 import index_layout as page3_layout
 # from pages.page1 import layout as page1_layout
 
 # Create the Dash app
 app = dash.Dash(__name__, suppress_callback_exceptions=True, external_stylesheets=[dbc.themes.BOOTSTRAP])
+
+server = app.server
 
 # Define the main layout of the app
 app.layout = dbc.Container(
@@ -17,7 +19,7 @@ app.layout = dbc.Container(
         dbc.Row(
             dbc.Col(
                 html.Header(
-                    html.H1("Dashboard Header", className="text-center my-4"),
+                    html.H1("Unlimited Analysis", className="text-center my-4"),
                     className="header"
                 )
             )
@@ -31,11 +33,11 @@ app.layout = dbc.Container(
 home_layout = dbc.Container(
     [
         dbc.Row([
-            dbc.Col(html.H1("Welcome to the Dashboard", className="display-3 text-center"), width=12)
+            dbc.Col(html.H1("Welcome to my Dashboard", className="display-3 text-center"), width=12)
         ]),
         dbc.Row([
             dbc.Col(html.P(
-                "Select a thumbnail to navigate to the corresponding page.",
+                "Select below to navigate to the respective analysis.",
                 className="lead text-center"
             ), width=12)
         ]),
