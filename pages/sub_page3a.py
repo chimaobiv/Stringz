@@ -18,11 +18,15 @@ from colorcet import fire
 import json
 import time
 
-# Load secrets
-with open('config/secrets.json') as f:
-    secrets = json.load(f)
-    api_key = secrets['tomtom_api_key']
-    mapbox_access_token = secrets['mapbox_access_token']
+import os
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
+
+# Access the environment variables directly
+api_key = os.getenv('tomtom_api_key')
+mapbox_access_token = os.getenv('mapbox_access_token')
 
 # Global variable for caching
 cached_df = None

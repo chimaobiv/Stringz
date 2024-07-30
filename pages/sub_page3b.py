@@ -10,11 +10,16 @@ import plotly.graph_objects as go
 from datetime import datetime
 import time
 import json
-# Load secrets
-with open('config/secrets.json') as f:
-    secrets = json.load(f)
-    api_key = secrets['tomtom_api_key']
-    mapbox_access_token = secrets['mapbox_access_token']
+
+import os
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
+
+# Access the environment variables directly
+api_key = os.getenv('tomtom_api_key')
+mapbox_access_token = os.getenv('mapbox_access_token')
 
 # Load the parquet file in chunks
 def load_geojson_chunk(parquet_file_path, npartitions=2):
