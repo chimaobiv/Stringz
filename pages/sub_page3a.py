@@ -60,7 +60,7 @@ def load_geojson_chunk(parquet_file_path, npartitions=2):
 
 
 # Load the parquet data
-parquet_file_path = '/Users/cobi/PycharmProjects/project_ai/data/fire_archive_M-C61_490372.parquet'
+parquet_file_path = './data/fire_archive_M-C61_490372.parquet'
 gdf_chunked = load_geojson_chunk(parquet_file_path)
 df = gdf_chunked.compute()
 
