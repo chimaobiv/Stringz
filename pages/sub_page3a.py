@@ -41,7 +41,7 @@ def load_geojson_chunk(parquet_file_path, npartitions=2):
     start_time = time.time()
 
     # Read Parquet file using Dask
-    ddf = dd.read_parquet(parquet_file_path)
+    ddf = dd.read_parquet(parquet_file_path,chunksize='100MB')
 
     # Convert to GeoPandas DataFrame
     df = ddf.compute()
