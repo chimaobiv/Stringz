@@ -1,3 +1,4 @@
+import gc
 import dash
 from dash import dcc, html, Input, Output
 import dash_bootstrap_components as dbc
@@ -17,7 +18,6 @@ from datashader.utils import export_image
 from colorcet import fire
 import json
 import time
-
 import os
 from dotenv import load_dotenv
 
@@ -31,7 +31,6 @@ mapbox_access_token = os.getenv('mapbox_access_token')
 # Global variable for caching
 cached_df = None
 
-
 # Load the parquet file in chunks
 def load_geojson_chunk(parquet_file_path, npartitions=2):
     global cached_df
@@ -41,7 +40,7 @@ def load_geojson_chunk(parquet_file_path, npartitions=2):
     start_time = time.time()
 
     # Read Parquet file using Dask
-    ddf = dd.read_parquet(parquet_file_path,chunksize='100MB')
+    ddf = dd.read_parquet(parquet_file_path, chunksize='100MB')
 
     # Convert to GeoPandas DataFrame
     df = ddf.compute()
@@ -55,22 +54,24 @@ def load_geojson_chunk(parquet_file_path, npartitions=2):
     end_time = time.time()
     print(f"Time taken to load Parquet file: {end_time - start_time} seconds")
 
-    cached_df = dd.from_pandas(gdf, npartitions=npartitions)
+    cached_df = gdf
     return cached_df
-
 
 # Load the parquet data
 parquet_file_path = './data/fire_archive_M-C61_490372.parquet'
-gdf_chunked = load_geojson_chunk(parquet_file_path)
-df = gdf_chunked.compute()
+gdf = load_geojson_chunk(parquet_file_path)
 
 # Convert the ACQ_DATE to datetime format
 try:
-    df['ACQ_DATE'] = pd.to_datetime(df['ACQ_DATE'])
+    gdf['ACQ_DATE'] = pd.to_datetime(gdf['ACQ_DATE'])
 except Exception as e:
     print(f"Error converting ACQ_DATE to datetime: {e}")
 
-df['Year'] = df['ACQ_DATE'].dt.year
+# Optimize data types
+gdf['Year'] = gdf['ACQ_DATE'].dt.year.astype('int16')
+gdf['BRIGHTNESS'] = gdf['BRIGHTNESS'].astype('float32')
+gdf['LATITUDE'] = gdf['LATITUDE'].astype('float32')
+gdf['LONGITUDE'] = gdf['LONGITUDE'].astype('float32')
 
 layout = dbc.Container(
     [
@@ -102,18 +103,15 @@ layout = dbc.Container(
     fluid=True
 )
 
-
 def create_datashader_image(df, plot_width=800, plot_height=600):
     cvs = ds.Canvas(plot_width=plot_width, plot_height=plot_height)
     agg = cvs.points(df, 'LONGITUDE', 'LATITUDE')
     img = tf.shade(agg, cmap=fire, how='log')
     return img
 
-
 # Define the app
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP], suppress_callback_exceptions=True)
 app.layout = layout
-
 
 # Callback to update the summary graphs
 @app.callback(
@@ -133,25 +131,25 @@ app.layout = layout
 def update_summary(pathname):
     if pathname == '/sub_page3a':
         # Number of Fire Detections per Year (2014-2024)
-        fires_per_year = df.groupby('Year').size().reset_index(name='counts')
+        fires_per_year = gdf.groupby('Year').size().reset_index(name='counts')
         fig1 = px.line(fires_per_year, x='Year', y='counts', markers=True,
                        title='Number of Fire Detections per Year (2014-2024)')
         fig1.update_layout(xaxis_title='Year', yaxis_title='Number of Fires')
 
         # Spatial Distribution of Fires (2014-2024) using Datashader
-        img = create_datashader_image(df)
+        img = create_datashader_image(gdf)
         export_image(img, 'spatial_distribution', background="black")
         fig2 = px.imshow(img.to_pil(), title='Spatial Distribution of Fires (2014-2024)')
         fig2.update_layout(width=1200, height=800)
 
         # Hexbin Plot of Fire Occurrences (2014-2024)
-        fig3 = px.density_mapbox(df, lat='LATITUDE', lon='LONGITUDE', z='BRIGHTNESS', radius=10,
+        fig3 = px.density_mapbox(gdf, lat='LATITUDE', lon='LONGITUDE', z='BRIGHTNESS', radius=10,
                                  mapbox_style="stamen-terrain", title='Hexbin Plot of Fire Occurrences (2014-2024)')
         fig3.update_layout(mapbox=dict(accesstoken=mapbox_access_token, center=dict(lat=37, lon=-95), zoom=3),
                            width=1200, height=800)
 
         # Fire Occurrences by Month (2014-2024)
-        df_reset = df.reset_index()
+        df_reset = gdf.reset_index()
         df_reset['MONTH'] = df_reset['ACQ_DATE'].dt.month
         monthly_counts = df_reset['MONTH'].value_counts().sort_index().reset_index()
         monthly_counts.columns = ['Month', 'counts']
@@ -236,9 +234,9 @@ def update_summary(pathname):
             fig9.add_trace(go.Scatter(x=monthly_counts.index, y=monthly_counts, mode='lines', name='Historical Data'))
             fig9.update_layout(title='Forecast of Fire Occurrences', xaxis_title='Date', yaxis_title='Number of Fires')
 
+        gc.collect()  # Explicitly run garbage collection to free up memory
         return fig1, fig2, fig3, fig4, fig5, fig6, fig7, fig8, fig9
     return {}, {}, {}, {}, {}, {}, {}, {}, {}
-
 
 # Register the callbacks
 def register_callbacks(app):
@@ -256,7 +254,6 @@ def register_callbacks(app):
         ],
         [Input('url', 'pathname')]
     )(update_summary)
-
 
 register_callbacks(app)
 
