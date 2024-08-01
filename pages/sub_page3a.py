@@ -57,21 +57,21 @@ layout = dbc.Container(
                 width=12
             )
         ]),
-        html.H3("Number of Fire Detections per Year (2014-2024)"),
+        html.H3("Number of Fire Detections per Year (2022-2024)"),
         dcc.Graph(id='fires_per_year'),
-        html.H3("Spatial Distribution of Fires (2014-2024)"),
+        html.H3("Spatial Distribution of Fires (2022-2024)"),
         dcc.Graph(id='spatial_distribution'),
-        html.H3("Hexbin Plot of Fire Occurrences (2014-2024)"),
+        html.H3("Hexbin Plot of Fire Occurrences (2022-2024)"),
         dcc.Graph(id='hexbin_plot'),
-        html.H3("Fire Occurrences by Month (2014-2024)"),
+        html.H3("Fire Occurrences by Month (2022-2024)"),
         dcc.Graph(id='monthly_fires'),
-        html.H3("Time Series Analysis of Fire Occurrences (2014-2024)"),
+        html.H3("Time Series Analysis of Fire Occurrences (2022-2024)"),
         dcc.Graph(id='time_series'),
-        html.H3("Trend Analysis of Fire Occurrences (2014-2024)"),
+        html.H3("Trend Analysis of Fire Occurrences (2022-2024)"),
         dcc.Graph(id='trend_analysis'),
-        html.H3("Yearly Fire Occurrences (2014-2024)"),
+        html.H3("Yearly Fire Occurrences (2022-2024)"),
         dcc.Graph(id='yearly_fires'),
-        html.H3("Fire Occurrences by Season (2014-2024)"),
+        html.H3("Fire Occurrences by Season (2022-2024)"),
         dcc.Graph(id='seasonal_fires'),
         html.H3("Forecast of Fire Occurrences"),
         dcc.Graph(id='forecast_fires')
@@ -120,12 +120,12 @@ def update_summary(pathname):
         # Number of Fire Detections per Year (2014-2024)
         fires_per_year = df.groupby('Year').size().reset_index(name='counts')
         fig1 = px.line(fires_per_year, x='Year', y='counts', markers=True,
-                       title='Number of Fire Detections per Year (2014-2024)')
+                       title='Number of Fire Detections per Year (2022-2024)')
         fig1.update_layout(xaxis_title='Year', yaxis_title='Number of Fires')
 
         # Spatial Distribution of Fires (2014-2024) using Datashader
         img = create_datashader_image(df)
-        fig2 = px.imshow(img.to_pil(), title='Spatial Distribution of Fires (2014-2024)')
+        fig2 = px.imshow(img.to_pil(), title='Spatial Distribution of Fires (2022-2024)')
         fig2.update_layout(width=1200, height=800)
 
         # Hexbin Plot of Fire Occurrences (2014-2024)
@@ -139,7 +139,7 @@ def update_summary(pathname):
         df_reset['MONTH'] = df_reset['ACQ_DATE'].dt.month
         monthly_counts = df_reset['MONTH'].value_counts().sort_index().reset_index()
         monthly_counts.columns = ['Month', 'counts']
-        fig4 = px.bar(monthly_counts, x='Month', y='counts', title='Fire Occurrences by Month (2014-2024)')
+        fig4 = px.bar(monthly_counts, x='Month', y='counts', title='Fire Occurrences by Month (2022-2024)')
         fig4.update_layout(xaxis_title='Month', yaxis_title='Number of Fires', xaxis=dict(tickmode='array',
                                                                                           tickvals=list(range(1, 13)),
                                                                                           ticktext=['Jan', 'Feb', 'Mar',
