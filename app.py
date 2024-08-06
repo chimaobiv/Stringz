@@ -5,7 +5,9 @@ import dash_bootstrap_components as dbc
 from pages.sub_page3a import layout as sub_page3a_layout, register_callbacks as register_sub_page3a_callbacks
 from pages.sub_page3b import layout as sub_page3b_layout, register_callbacks as register_sub_page3b_callbacks
 from pages.page3 import index_layout as page3_layout
-# from pages.page1 import layout as page1_layout
+from pages.page1 import layout as page1_layout
+from pages.sub_page1a import layout as sub_page1a_layout, register_callbacks as register_sub_page1a_callbacks
+# from pages.sub_page1b import layout as sub_page1b_layout, register_callbacks as register_sub_page1b_callbacks
 
 # Create the Dash app
 app = dash.Dash(__name__, suppress_callback_exceptions=True, external_stylesheets=[dbc.themes.BOOTSTRAP])
@@ -53,7 +55,13 @@ home_layout = dbc.Container(
                 html.Div(
                     className="thumbnail m-2",
                     children=[
-                        html.A("Coming Soon", href="/page1")
+                        html.A([
+
+                            html.Img(src='/assets/weather_thumbnail.webp', className='thumbnail-img'),
+                            html.Span("Weather Analysis", className='thumbnail-text')
+                        ], href="/page1"
+
+                        )
                     ]
                 ),
                 html.Div(
@@ -101,24 +109,26 @@ home_layout = dbc.Container(
 # Define a callback to update the content based on the URL
 @app.callback(Output('page-content', 'children'), [Input('url', 'pathname')])
 def display_page(pathname):
-    if pathname == "/page3":
+    if pathname == "/page1":
+        return page1_layout
+    elif pathname == "/sub_page1a":
+        return sub_page1a_layout
+    # elif pathname == "/sub_page1b":
+    #     return sub_page1b_layout
+    elif pathname == "/page3":
         return page3_layout
     elif pathname == "/sub_page3a":
         return sub_page3a_layout
     elif pathname == "/sub_page3b":
         return sub_page3b_layout
-    # elif pathname == "/page1":
-        # pass
-        # return page1_layout
-    # elif pathname == "/page2":
-    #     pass
-        # return page2_layout
     else:
         return home_layout
 
 # Register callbacks for the sub-pages
 register_sub_page3a_callbacks(app)
 register_sub_page3b_callbacks(app)
+register_sub_page1a_callbacks(app)
+
 
 if __name__ == "__main__":
     app.run_server(debug=True)
