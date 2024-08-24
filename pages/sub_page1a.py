@@ -88,7 +88,8 @@ layout = dbc.Container(
                 dcc.Dropdown(id='correlation-type-dropdown', options=[
                     {'label': 'Humidity', 'value': 'humidity'},
                     {'label': 'Wind Speed', 'value': 'windspeed'},
-                    {'label': 'Precipitation', 'value': 'precip'}
+                    {'label': 'Precipitation', 'value': 'precip'},
+                    {'label': 'Solar Radiation', 'value': 'solarradiation'}
                 ], value='humidity', style={'margin-bottom': '20px'})
             ], width=6)
         ]),
@@ -98,7 +99,9 @@ layout = dbc.Container(
         dcc.Graph(id='correlation-scatter-graph'),
         dcc.Graph(id='seasonal-avg-temp-graph'),
         dcc.Graph(id='seasonal-avg-temp-var-graph'),
-        dcc.Graph(id='avg-temp-by-location-graph')
+        dcc.Graph(id='avg-temp-by-location-graph'),
+        dcc.Graph(id='solar-trend-graph'),
+        dcc.Graph(id='seasonal-avg-solar-graph')
     ],
     fluid=True
 )
@@ -115,7 +118,9 @@ def register_callbacks(app):
             Output('correlation-scatter-graph', 'figure'),
             Output('seasonal-avg-temp-graph', 'figure'),
             Output('seasonal-avg-temp-var-graph', 'figure'),
-            Output('avg-temp-by-location-graph', 'figure')
+            Output('avg-temp-by-location-graph', 'figure'),
+            Output('solar-trend-graph', 'figure'),
+            Output('seasonal-avg-solar-graph', 'figure')
         ],
         Input('analyze-button', 'n_clicks'),
         State('location-dropdown', 'value'),
@@ -169,8 +174,19 @@ def register_callbacks(app):
                                               labels={temp_type: 'Average Temperature (°C)', 'location': 'Location'},
                                               title='Average Temperature by Location')
 
-            return temp_trend_fig, temp_var_fig, corr_scatter_fig, seasonal_avg_temp_fig, seasonal_avg_temp_var_fig, avg_temp_by_location_fig
-        return {}, {}, {}, {}, {}, {}
+            # Solar Radiation Trend Graph
+            solar_trend_fig = px.line(combined_data, x='datetime', y='solarradiation', color='location',
+                                      labels={'solarradiation': 'Solar Radiation (W/m²)', 'datetime': 'Date'},
+                                      title='Solar Radiation Trends Over Time')
+
+            # Seasonal Average Solar Radiation Graph
+            seasonal_avg_solar = combined_data.groupby(['season', 'location'])['solarradiation'].mean().reset_index()
+            seasonal_avg_solar_fig = px.bar(seasonal_avg_solar, x='season', y='solarradiation', color='location',
+                                            labels={'solarradiation': 'Solar Radiation (W/m²)', 'season': 'Season'},
+                                            title='Average Solar Radiation by Season')
+
+            return temp_trend_fig, temp_var_fig, corr_scatter_fig, seasonal_avg_temp_fig, seasonal_avg_temp_var_fig, avg_temp_by_location_fig, solar_trend_fig, seasonal_avg_solar_fig
+        return {}, {}, {}, {}, {}, {}, {}, {}
 
 register_callbacks(app)
 
